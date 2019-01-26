@@ -13,7 +13,6 @@ phone_url = 'http://huoyun888.cn/api/do.php?action=getPhone&token=903e64acc9b2a4
 response = requests.get(phone_url).text
 phone = response.split('|')[1]
 
-
 url = 'https://weibo.com/signup/signup.php'
 
 chrome_options = Options()
@@ -67,7 +66,3 @@ while True:
     if '1' in response:
         print(response)
         break
-
-
-
-

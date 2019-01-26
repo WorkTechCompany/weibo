@@ -10,19 +10,22 @@ from selenium.webdriver.support import expected_conditions as EC
 
 import time
 
+
 def getphone():
     while True:
-        phone_url = 'http://huoyun888.cn/api/do.php?action=getPhone&token=903e64acc9b2a43985353bc2e0809c9c&sid=11818'
+        phone_url = 'http://huoyun888.cn/api/do.php?action=getPhone&token=903e64acc9b2a43985353bc2e0809c9c&sid=11818&phoneType=CMCC'
         response = requests.get(phone_url).text
         if '余额不足' in response:
-            url = 'http://huoyun888.cn/api/do.php?action=cancelAllRecv&token=903e64acc9b2a43985353bc2e0809c9c&sid=11818'
+            url = 'http://huoyun888.cn/api/do.php?action=cancelAllRecv&token=903e64acc9b2a43985353bc2e0809c9c&sid=11818phoneType=CMCC'
             requests.get(url)
         else:
             phone = response.split('|')[1]
             return phone
 
+
 def putSentMessage(phone, message_content, addressee):
-    putSentMessage = 'http://huoyun888.cn/api/do.php?action=putSentMessage&phone=' + phone + '&sid=' + '11818' + '&message=' + message_content + '&recvPhone=' + addressee + '&token=903e64acc9b2a43985353bc2e0809c9c'
+    author = 'daidaicu'
+    putSentMessage = 'http://huoyun888.cn/api/do.php?action=putSentMessage&phone=' + phone + '&sid=' + '11818' + '&message=' + message_content + '&recvPhone=' + addressee + '&token=903e64acc9b2a43985353bc2e0809c9c' + '&author=' + author
     print(putSentMessage)
     while True:
         response = requests.get(putSentMessage).text
@@ -48,6 +51,7 @@ def getSentMessageStatus(phone):
             return flag
         if '手机号不在线或手机号已释放，可尝试检查发码是否成功。' in response:
             return flag
+
 
 url = 'https://login.sina.com.cn/signup/signin.php'
 
@@ -78,9 +82,9 @@ wait = WebDriverWait(browser, 30)
 # name = input('请输入账号：')
 # # password = input('请输入密码：')
 
-user = '00639382315559'
-password = 'AfR739517R'
-name = '6935580399'
+user = '00639382315692'
+password = 'uif698539K'
+name = '6934697764'
 
 browser.find_element("name", "username").send_keys(user)
 browser.find_element("name", "password").send_keys(password)
@@ -127,6 +131,3 @@ while True:
         # if flag:
         #     browser.find_elements_by_xpath("//input[@id='blogPhoneNum']")[0].clear()
         #     browser.find_elements_by_xpath("//input[@id='blogPhoneNum']")[0].send_keys(phone)
-
-
-
