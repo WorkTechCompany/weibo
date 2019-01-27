@@ -26,19 +26,21 @@ def getphone():
 def putSentMessage(phone, message_content, addressee):
     author = 'daidaicu'
     putSentMessage = 'http://huoyun888.cn/api/do.php?action=putSentMessage&phone=' + phone + '&sid=' + '11818' + '&message=' + message_content + '&recvPhone=' + addressee + '&token=903e64acc9b2a43985353bc2e0809c9c' + '&author=' + author
-    print(putSentMessage)
+    # print(putSentMessage)
     while True:
         response = requests.get(putSentMessage).text
         time.sleep(3)
         if '1' in response:
             print(response)
             return phone
+        if '提交失败' in response:
+            return -1
 
 
 def getSentMessageStatus(phone):
     flag = True
     getSentMessageStatus = 'http://huoyun888.cn/api/do.php?action=getSentMessageStatus&phone=' + phone + '&sid=' + '11818' + '&token=903e64acc9b2a43985353bc2e0809c9c'
-    print(getSentMessageStatus)
+    # print(getSentMessageStatus)
     while True:
         response = requests.get(getSentMessageStatus).text
         time.sleep(3)
@@ -77,7 +79,7 @@ def sendmessage(user, password, name):
         browser = webdriver.Chrome(chrome_options=chrome_options)
         browser.get(url)
         browser.implicitly_wait(3)
-        browser.set_page_load_timeout(10)  # 10秒
+        # browser.set_page_load_timeout(10)  # 10秒
         # wait = WebDriverWait(browser, 30)
 
         # name = input('请输入账号：')
@@ -101,44 +103,50 @@ def sendmessage(user, password, name):
             browser.find_element("name", "door").send_keys(check)
             browser.find_elements_by_xpath("//input[@class='W_btn_a btn_34px']")[0].click()
             time.sleep(2)
-            print(browser.current_url)
+            if browser.current_url == 'http://my.sina.com.cn/':
+                break
             html = browser.page_source
             sel = etree.HTML(html)
             check_result = sel.xpath("//span[@class='form_prompt']/i/text()")[0]
             if check_result != '输入的验证码不正确':
                 break
 
-
-
-
+        # browser.find_elements_by_xpath("//li[@class='l_pdt l_pdt1']/a/span")[0].click()
+        # time.sleep(2)
         url = 'http://control.blog.sina.com.cn/myblog/htmlsource/blog_notopen.php?uid=' + name + '&version=7'
         browser.get(url)
         browser.refresh()
-        time.sleep(3)
 
-        phone = getphone()
-        browser.find_elements_by_xpath("//input[@id='blogPhoneNum']")[0].clear()
-        browser.find_elements_by_xpath("//input[@id='blogPhoneNum']")[0].send_keys(phone)
-        time.sleep(3)
-        html = browser.page_source
-        sel = etree.HTML(html)
         while True:
             try:
+                time.sleep(3)
+                phone = getphone()
+                browser.find_elements_by_xpath("//div[@class='focus open-blog-phone-border']/input | //div[@class='open-blog-phone-border']/input")[0].clear()
+                browser.find_elements_by_xpath("//div[@class='focus open-blog-phone-border']/input | //div[@class='open-blog-phone-border']/input")[0].send_keys(phone)
+                time.sleep(3)
+                html = browser.page_source
+                sel = etree.HTML(html)
                 error = sel.xpath("//p[@id='blogPhoneNumError']/text()")[0]
-                if len(error) > 1:
-                    print('号码有错误')
-                    phone = getphone()
-                    browser.find_elements_by_xpath("//input[@id='blogPhoneNum']")[0].clear()
-                    browser.find_elements_by_xpath("//input[@id='blogPhoneNum']")[0].send_keys(phone)
+                print(error)
+                if len(error) > 1 or error != '名称不能为空':
+                    continue
             except:
-                messaging = sel.xpath("//div[@class='send-msg-tip']/p/text()")[0]
-                message_content = messaging.split('送')[1].split('到')[0]
-                addressee = messaging.split('到')[1].split('进')[0]
+                print(phone)
+                time.sleep(3)
+                html = browser.page_source
+                sel = etree.HTML(html)
+                messaging = sel.xpath("//div[@class='send-msg-tip']/p/text()")
+                if len(messaging) == 0:
+                    continue
+                message_content = messaging[0].split('送')[1].split('到')[0]
+                addressee = messaging[0].split('到')[1].split('进')[0]
 
                 print(message_content)
                 print(addressee)
 
                 phone = putSentMessage(phone, message_content, addressee)
+                if phone == -1:
+                    continue
                 flag = getSentMessageStatus(phone)
                 if flag:
                     browser.find_elements_by_xpath("//input[@id='blogPhoneNum']")[0].clear()
