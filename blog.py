@@ -9,6 +9,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from cardcode import CardCode
 import time
+import os
 
 
 def getphone():
@@ -55,6 +56,18 @@ def getSentMessageStatus(phone):
         if '手机号不在线或手机号已释放，可尝试检查发码是否成功。' in response:
             return flag
 
+def save_image(image_url):
+    try:
+        os.makedirs("./image")
+    except:
+        pass
+    finally:
+        response = requests.get(image_url[0])
+        print(response.content)
+        address = "./image/code.png"
+        with open(address, 'wb') as f:
+            f.write(response.content)
+        return address
 
 def sendmessage(user, password, name):
     url = 'https://login.sina.com.cn/signup/signin.php'
@@ -84,25 +97,19 @@ def sendmessage(user, password, name):
     # browser.set_page_load_timeout(10)  # 10秒
     # wait = WebDriverWait(browser, 30)
 
-    # name = input('请输入账号：')
-    # # password = input('请输入密码：')
-
-    # user = '00639382315692'
-    # password = 'uif698539K'
-    # name = '6934697764'
-
     browser.find_element("name", "username").send_keys(user)
     browser.find_element("name", "password").send_keys(password)
     time.sleep(3)
     browser.find_elements_by_xpath("//input[@class='W_btn_a btn_34px']")[0].click()
 
-    # html = browser.page_source
-    # sel = etree.HTML(html)
-    # captcha_url = sel.xpath("//img[@id='check_img']/@src")
+    html = browser.page_source
+    sel = etree.HTML(html)
     while True:
-        check = input('请输入验证码：')
+        captcha_url = sel.xpath("//img[@id='check_img']/@src")
+        address = save_image(captcha_url)
+        result = cardcode.__vaild__(address)
         browser.find_elements_by_xpath("//input[@id='door']")[0].clear()
-        browser.find_element("name", "door").send_keys(check)
+        browser.find_element("name", "door").send_keys(result)
         browser.find_elements_by_xpath("//input[@class='W_btn_a btn_34px']")[0].click()
         time.sleep(2)
         if browser.current_url == 'http://my.sina.com.cn/':
@@ -160,12 +167,13 @@ def sendmessage(user, password, name):
             else:
                 break
     browser.find_elements_by_xpath("//a[@class='btn']")[0].click()
-
+    browser.quit()
+    time.sleep(3)
 
 if __name__ == '__main__':
     cardcode = CardCode()
-    result = cardcode.__vaild__(b'pin.png')
-    print(result)
+    # result = cardcode.__vaild__(b'pin.png')
+    # print(result)
     card_number = []
     with open('blog.txt', 'r') as f:
         for i in f.readlines():
